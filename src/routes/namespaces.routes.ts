@@ -5,8 +5,9 @@ import { generateSlug } from "../utils/utils";
 const namespacesRoutes = Router();
 
 namespacesRoutes.get("/", NamespaceController.getNamespaces);
-namespacesRoutes.get("/:id", NamespaceController.getNamespaceById);
-
 namespacesRoutes.post("/", NamespaceController.createNamespace);
+
+namespacesRoutes.get("/:id", NamespaceController.getNamespaceById);
+namespacesRoutes.delete("/:id", NamespaceController.deleteNamespace);
 
 export default namespacesRoutes;

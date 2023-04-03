@@ -25,4 +25,20 @@ export default class NamespaceService {
     });
     return namespace;
   }
+
+  // Delete a namespace
+  public static async deleteNamespace(id: string): Promise<Namespace> {
+    const namespace = await prisma.namespace.delete({
+      where: { id },
+    });
+    return namespace;
+  }
+
+  // Check if a namespace exists
+  public static async namespaceExists(id: string): Promise<boolean> {
+    const namespace = await prisma.namespace.findUnique({
+      where: { id },
+    });
+    return !!namespace;
+  }
 }

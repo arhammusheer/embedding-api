@@ -30,8 +30,9 @@ model Files {
   id          String    @id @default(cuid())
   name        String
   url         String
+  bucket      String
   embedStatus Boolean
+  
   namespace   Namespace @relation(fields: [namespaceId], references: [id])
-
   namespaceId String
 }

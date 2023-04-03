@@ -51,6 +51,19 @@ const NamespaceController = {
       next(error);
     }
   },
+
+  deleteNamespace: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const namespace = await NamespaceService.deleteNamespace(req.params.id);
+      res.status(200).json({
+        status: "success",
+        data: namespace,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
 };
 
 export default NamespaceController;
