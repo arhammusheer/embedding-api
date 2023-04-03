@@ -1,7 +1,6 @@
 import { Router } from "express";
-import NamespaceController from "../controllers/namespace.controller";
-import { generateSlug } from "../utils/utils";
 import multer from "multer";
+import NamespaceController from "../controllers/namespace.controller";
 
 const upload = multer();
 
