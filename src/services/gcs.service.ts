@@ -38,4 +38,15 @@ export default class StorageService {
     const exists = await file.exists();
     return exists[0];
   }
+
+  public async getFileStream(filename: string): Promise<NodeJS.ReadableStream> {
+    const file = this.bucket.file(filename);
+    const stream = file.createReadStream();
+    return stream;
+  }
+
+  public async getFileByPath(path: string): Promise<File> {
+    const file = this.bucket.file(path);
+    return file;
+  }
 }

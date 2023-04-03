@@ -32,6 +32,16 @@ export default class NamespaceService {
   public static async getNamespaceById(id: string): Promise<Namespace | null> {
     const namespace = await prisma.namespace.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        files: true,
+      },
     });
     return namespace;
   }
@@ -160,6 +170,31 @@ export default class NamespaceService {
     });
 
     return namespace;
+  }
+
+  public static async fileExists(fileId: string): Promise<boolean> {
+    const file = await prisma.files.findUnique({
+      where: { id: fileId },
+    });
+
+    if (!file) {
+      return false;
+    }
+
+    // Verify file exists in gcp
+    const gcp = new StorageService(BUCKET_NAME);
+    const fileExists = await gcp.fileExists(file.name);
+
+    if (!fileExists) {
+      // Delete file from database
+      await prisma.files.delete({
+        where: { id: fileId },
+      });
+
+      return false;
+    }
+
+    return !!file;
   }
 
   public static async doesUserOwnNamespace(

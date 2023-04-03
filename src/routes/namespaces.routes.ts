@@ -2,7 +2,9 @@ import { Router } from "express";
 import multer from "multer";
 import NamespaceController from "../controllers/namespace.controller";
 
-const upload = multer();
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
 const namespacesRoutes = Router();
 
@@ -18,5 +20,6 @@ namespacesRoutes.post(
   upload.single("file"),
   NamespaceController.uploadFile
 );
+namespacesRoutes.delete("/:id/files/:fileId", NamespaceController.deleteFile);
 
 export default namespacesRoutes;
