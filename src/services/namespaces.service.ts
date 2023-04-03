@@ -5,8 +5,21 @@ import { BUCKET_NAME } from "../config";
 
 export default class NamespaceService {
   // Get all namespaces
-  public static async getNamespaces(): Promise<Namespace[]> {
-    const namespaces = await prisma.namespace.findMany();
+  public static async getNamespaces(userId?: string): Promise<Namespace[]> {
+    // Get namespace by user / if no userid, get all namespaces
+    if (!userId) {
+      const namespaces = await prisma.namespace.findMany();
+      return namespaces;
+    }
+
+    const namespaces = await prisma.namespace.findMany({
+      include: {
+        user: {
+          where: { id: userId },
+        },
+      },
+    });
+
     return namespaces;
   }
 
