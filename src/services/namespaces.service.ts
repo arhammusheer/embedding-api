@@ -1,7 +1,11 @@
 import { Namespace, Prisma } from "@prisma/client";
 import { prisma } from "../app";
-import StorageService from "./gcs.service";
 import { BUCKET_NAME } from "../config";
+import EmbeddingService from "./embedding.service";
+import StorageService from "./gcs.service";
+import LoaderService from "./loaders.service";
+import { Vector } from "@pinecone-database/pinecone";
+import { VectorFromJSON } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch";
 
 export default class NamespaceService {
   // Get all namespaces
@@ -220,5 +224,67 @@ export default class NamespaceService {
     }
 
     return true;
+  }
+
+  public static async embedFile(fileId: string) {
+    const file = await prisma.files.findUnique({
+      where: { id: fileId },
+    });
+
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    // Check if file is already embedded
+    if (file.embedStatus) {
+      throw new Error("File is already embedded");
+    }
+
+    const gcp = new StorageService(BUCKET_NAME);
+    const fileExists = await gcp.fileExists(file.name);
+
+    if (!fileExists) {
+      this.deleteFile(file.namespaceId, fileId);
+      return null;
+    }
+
+    const g_file = await gcp.getFile(file.name);
+    const [metadata] = await g_file.getMetadata();
+    const [fileContent] = await g_file.download();
+    const loader = new LoaderService();
+    const fileData = await loader.load(fileContent, metadata.contentType);
+
+    const embedding = new EmbeddingService();
+    const embeds = await embedding.generateEmbedding(fileData);
+
+    const vectors = embeds.map((embed, i) => {
+      const v = {
+        id: `${fileId}-index-${i}`,
+        values: embed,
+        metadata: {
+          fileName: file.name,
+          index: i,
+        },
+      };
+
+      const vector = VectorFromJSON(v);
+
+      return vector;
+    });
+
+    console.log(vectors);
+
+    const upsert = await embedding.upsertEmbedding(vectors, file.namespaceId);
+
+    if (upsert) {
+      await prisma.files.update({
+        where: { id: fileId },
+        data: {
+          embedStatus: true,
+        },
+      });
+    }
+
+    return upsert;
   }
 }

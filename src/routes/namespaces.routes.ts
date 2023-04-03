@@ -22,4 +22,6 @@ namespacesRoutes.post(
 );
 namespacesRoutes.delete("/:id/files/:fileId", NamespaceController.deleteFile);
 
+namespacesRoutes.post("/:id/files/:fileId/embed", NamespaceController.embedFile)
+
 export default namespacesRoutes;

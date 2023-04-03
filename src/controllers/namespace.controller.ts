@@ -146,6 +146,37 @@ const NamespaceController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  embedFile: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, fileId } = req.params;
+
+      const namespaceExists = await NamespaceService.namespaceExists(id);
+      if (!namespaceExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "Namespace does not exist",
+        });
+      }
+
+      const fileExists = await NamespaceService.fileExists(fileId);
+      if (!fileExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "File does not exist",
+        });
+      }
+
+      const file = await NamespaceService.embedFile(fileId);
+
+      res.status(200).json({
+        status: "success",
+        data: file,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

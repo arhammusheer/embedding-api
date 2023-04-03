@@ -1,4 +1,4 @@
-import { PineconeClient } from "@pinecone-database/pinecone";
+import { PineconeClient, Vector } from "@pinecone-database/pinecone";
 import {
   OPENAI_API_KEY,
   PINECONE_API_KEY,
@@ -13,7 +13,7 @@ export default class EmbeddingService {
 
   constructor() {
     this.client = new PineconeClient();
-
+    this.setIndex("gpt-4-langchain-docs");
     this.init();
 
     this.openAiClient = new OpenAIService(OPENAI_API_KEY);
@@ -63,9 +63,22 @@ export default class EmbeddingService {
     const embeddings = await Promise.all(
       chunks.map(async (chunk) => {
         const response = await this.openAiClient.createEmbedding(chunk);
-        return response.data;
+        return response.data.data[0].embedding;
       })
     );
-		
+
+    return embeddings;
+  }
+
+  async upsertEmbedding(data: Vector[], namespace: string) {
+    const index = this.client.Index(this.indexName);
+    const response = await index.upsert({
+      upsertRequest: {
+        vectors: data,
+        namespace,
+      },
+    });
+
+    return response;
   }
 }
