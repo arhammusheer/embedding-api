@@ -5,7 +5,8 @@ import { generateSlug } from "../utils/utils";
 const NamespaceController = {
   getNamespaces: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const namespaces = await NamespaceService.getNamespaces();
+      const id = req.user.id;
+      const namespaces = await req.user.getNamespaces();
       res.status(200).json({
         status: "success",
         data: namespaces,
@@ -17,7 +18,7 @@ const NamespaceController = {
 
   getNamespaceById: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const namespace = await NamespaceService.getNamespaceById(req.params.id);
+      const namespace = await req.user.getNamespaceById(req.params.id);
       res.status(200).json({
         status: "success",
         data: namespace,
@@ -38,10 +39,7 @@ const NamespaceController = {
         });
       }
 
-      const namespace = await NamespaceService.createNamespace({
-        name,
-        slug: generateSlug(name),
-      });
+      const namespace = await req.user.createNamespace(name);
 
       res.status(200).json({
         status: "success",
@@ -54,7 +52,7 @@ const NamespaceController = {
 
   deleteNamespace: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const namespace = await NamespaceService.deleteNamespace(req.params.id);
+      const namespace = await req.user.deleteNamespace(req.params.id);
       res.status(200).json({
         status: "success",
         data: namespace,

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
@@ -24,6 +24,15 @@ const _404: express.RequestHandler = (req, res, next) => {
 };
 
 app.use(_404);
+
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  res.status(500).json({
+    status: "error",
+    message: err.message,
+  });
+};
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

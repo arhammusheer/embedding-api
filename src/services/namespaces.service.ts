@@ -16,6 +16,11 @@ export default class NamespaceService {
       include: {
         user: {
           where: { id: userId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
     });
@@ -116,6 +121,11 @@ export default class NamespaceService {
       },
     });
 
+    // Add file to GCP
+    await gcp.uploadFile(filename, file, {
+      contentType: data.mimetype,
+    });
+
     return namespace;
   }
 
@@ -150,5 +160,30 @@ export default class NamespaceService {
     });
 
     return namespace;
+  }
+
+  public static async doesUserOwnNamespace(
+    userId: string,
+    namespaceId: string
+  ): Promise<boolean> {
+    const namespace = await prisma.namespace.findUnique({
+      where: { id: namespaceId },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!namespace) {
+      return false;
+    }
+
+    // if namespace.user array has userId, return true
+    const nsUser = namespace.user.find((user) => user.id === userId);
+
+    if (!nsUser) {
+      return false;
+    }
+
+    return true;
   }
 }
