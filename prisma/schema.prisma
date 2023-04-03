@@ -10,28 +10,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
+model User {
   id        String      @id @default(cuid())
   email     String      @unique
   password  String
   name      String?
-  namespace namespace[]
+  namespace Namespace[]
 }
 
-model namespace {
+model Namespace {
   id    String  @id @default(cuid())
   name  String
   slug  String  @unique
-  user  user[]
-  files files[]
+  user  User[]
+  files Files[]
 }
 
-model files {
+model Files {
   id          String    @id @default(cuid())
   name        String
   url         String
   embedStatus Boolean
-  namespace   namespace @relation(fields: [namespaceId], references: [id])
+  namespace   Namespace @relation(fields: [namespaceId], references: [id])
 
   namespaceId String
 }
