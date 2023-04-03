@@ -62,8 +62,62 @@ const NamespaceController = {
     } catch (error) {
       next(error);
     }
-  }
-  
+  },
+
+  getFilesByNamespaceId: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const files = await NamespaceService.getFilesByNamespaceId(req.params.id);
+      res.status(200).json({
+        status: "success",
+        data: files,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  uploadFile: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { file } = req;
+      const { id } = req.params;
+
+      if (!file) {
+        return res.status(400).json({
+          status: "error",
+          message: "File is required",
+        });
+      }
+      // Only txt and pdf files are allowed
+      const allowedMimeTypes = ["text/plain", "application/pdf"];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return res.status(400).json({
+          status: "error",
+          message: "Only txt and pdf files are allowed",
+        });
+      }
+
+      const namespaceExists = await NamespaceService.namespaceExists(id);
+      if (!namespaceExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "Namespace does not exist",
+        });
+      }
+
+      const fileData = await NamespaceService.uploadFile(id, file);
+
+      res.status(200).json({
+        status: "success",
+        data: fileData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default NamespaceController;
