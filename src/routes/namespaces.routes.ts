@@ -10,6 +10,7 @@ const namespacesRoutes = Router();
 
 namespacesRoutes.get("/", NamespaceController.getNamespaces);
 namespacesRoutes.post("/", NamespaceController.createNamespace);
+namespacesRoutes.get("/:id/search", NamespaceController.query);
 
 namespacesRoutes.get("/:id", NamespaceController.getNamespaceById);
 namespacesRoutes.delete("/:id", NamespaceController.deleteNamespace);
@@ -22,6 +23,14 @@ namespacesRoutes.post(
 );
 namespacesRoutes.delete("/:id/files/:fileId", NamespaceController.deleteFile);
 
-namespacesRoutes.post("/:id/files/:fileId/embed", NamespaceController.embedFile)
+namespacesRoutes.post(
+  "/:id/files/:fileId/embed",
+  NamespaceController.embedFile
+);
+
+namespacesRoutes.delete(
+  "/:id/files/:fileId/embed",
+  NamespaceController.removeEmbeddings
+);
 
 export default namespacesRoutes;

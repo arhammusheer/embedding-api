@@ -1,11 +1,10 @@
+import { VectorFromJSON } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch";
 import { Namespace, Prisma } from "@prisma/client";
 import { prisma } from "../app";
 import { BUCKET_NAME } from "../config";
 import EmbeddingService from "./embedding.service";
 import StorageService from "./gcs.service";
 import LoaderService from "./loaders.service";
-import { Vector } from "@pinecone-database/pinecone";
-import { VectorFromJSON } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch";
 
 export default class NamespaceService {
   // Get all namespaces
@@ -158,6 +157,21 @@ export default class NamespaceService {
       await gcp.deleteFile(file.name);
     }
 
+    // Delete embeddings from pinecone
+    const embeddings = await prisma.embedding.findMany({
+      where: { fileId },
+    });
+
+    const embeddingIds = embeddings.map((embedding) => embedding.id);
+
+    const embed = new EmbeddingService();
+    await embed.deleteEmbeddings(embeddingIds, namespaceId);
+
+    // Delete embeddings from database
+    await prisma.embedding.deleteMany({
+      where: { fileId },
+    });
+
     // Delete file from database
     const namespace = await prisma.namespace.update({
       where: { id: namespaceId },
@@ -191,10 +205,7 @@ export default class NamespaceService {
 
     if (!fileExists) {
       // Delete file from database
-      await prisma.files.delete({
-        where: { id: fileId },
-      });
-
+      this.deleteFile(file.namespaceId, fileId);
       return false;
     }
 
@@ -256,6 +267,7 @@ export default class NamespaceService {
 
     const embedding = new EmbeddingService();
     const embeds = await embedding.generateEmbedding(fileData);
+    const chunks = embedding.getChunks(fileData);
 
     const vectors = embeds.map((embed, i) => {
       const v = {
@@ -264,6 +276,7 @@ export default class NamespaceService {
         metadata: {
           fileName: file.name,
           index: i,
+          text: chunks[i],
         },
       };
 
@@ -272,9 +285,11 @@ export default class NamespaceService {
       return vector;
     });
 
-    console.log(vectors);
-
-    const upsert = await embedding.upsertEmbedding(vectors, file.namespaceId);
+    const upsert = await embedding.upsertEmbedding(
+      vectors,
+      file.namespaceId,
+      fileId
+    );
 
     if (upsert) {
       await prisma.files.update({
@@ -286,5 +301,61 @@ export default class NamespaceService {
     }
 
     return upsert;
+  }
+
+  public static async removeEmbeddings(fileId: string) {
+    const embed = new EmbeddingService();
+    const file = await prisma.files.findUnique({
+      where: { id: fileId },
+    });
+
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    const embeddings = await prisma.embedding.findMany({
+      where: { fileId },
+    });
+
+    const embeddingIds = embeddings.map((embedding) => embedding.id);
+
+    await embed.init();
+    await embed.deleteEmbeddings(embeddingIds, file.namespaceId);
+
+    await prisma.embedding.deleteMany({
+      where: { fileId },
+    });
+
+    await prisma.files.update({
+      where: { id: fileId },
+      data: {
+        embedStatus: false,
+      },
+    });
+
+    return true;
+  }
+
+  public static async searchEmbedding(namespaceId: string, query: string) {
+    const embedding = new EmbeddingService();
+
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    // Check if embedding.setup is true else wait
+    if (!embedding.setup) {
+      await wait(500);
+    }
+
+    const queryVector = await embedding.generateEmbedding(query);
+
+    const searchQuery = Promise.all(
+      queryVector.map(async (vector) => {
+        const search = await embedding.searchEmbedding(vector, namespaceId);
+        return search;
+      })
+    );
+
+    const results = await searchQuery;
+    return results;
   }
 }

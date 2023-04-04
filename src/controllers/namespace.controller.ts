@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import NamespaceService from "../services/namespaces.service";
-import { generateSlug } from "../utils/utils";
 
 const NamespaceController = {
   getNamespaces: async (req: Request, res: Response, next: NextFunction) => {
@@ -128,6 +127,7 @@ const NamespaceController = {
           message: "Namespace does not exist",
         });
       }
+      console.log("fileId", fileId);
 
       const fileExists = await NamespaceService.fileExists(fileId);
       if (!fileExists) {
@@ -177,7 +177,68 @@ const NamespaceController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
+
+  query: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { q } = req.query;
+
+      if (!q) {
+        return res.status(400).json({
+          status: "error",
+          message: "Query is required",
+        });
+      }
+
+      const namespaceExists = await NamespaceService.namespaceExists(id);
+      if (!namespaceExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "Namespace does not exist",
+        });
+      }
+
+      const files = await NamespaceService.searchEmbedding(id, q as string);
+      res.status(200).json({
+        status: "success",
+        data: files,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  removeEmbeddings: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, fileId } = req.params;
+
+      const namespaceExists = await NamespaceService.namespaceExists(id);
+      if (!namespaceExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "Namespace does not exist",
+        });
+      }
+
+      const fileExists = await NamespaceService.fileExists(fileId);
+      if (!fileExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "File does not exist",
+        });
+      }
+
+      const file = await NamespaceService.removeEmbeddings(fileId);
+
+      res.status(200).json({
+        status: "success",
+        data: file,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default NamespaceController;

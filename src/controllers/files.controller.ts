@@ -12,13 +12,11 @@ const filesController = {
 			const expires1hr = new Date();
 			expires1hr.setHours(expires1hr.getHours() + 1);
 			
+			await file.makePublic();
 
-			const url = await file.getSignedUrl({
-				action: 'read',
-				expires: expires1hr
-			})
+			const url = await file.publicUrl();
 
-
+			
       res.status(200).send(url)
     } catch (error) {
       next(error);
