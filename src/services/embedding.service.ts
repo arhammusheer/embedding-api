@@ -73,8 +73,6 @@ export default class EmbeddingService {
     const batchSizes = 5;
     const batches = Math.ceil(chunks.length / batchSizes);
 
-    console.log("batches", batches)
-
     let embeddings = [] as number[][];
     for (let i = 0; i < batches; i++) {
       const batch = chunks.slice(i * batchSizes, (i + 1) * batchSizes);
@@ -134,13 +132,17 @@ export default class EmbeddingService {
     return response;
   }
 
-  async searchEmbedding(data: number[], namespace: string) {
+  async searchEmbedding(
+    data: number[],
+    namespace: string,
+    limit: number = 10
+  ) {
     const index = this.client.Index(this.indexName);
     const response = await index.query({
       queryRequest: {
         vector: data,
         namespace,
-        topK: 10,
+        topK: limit,
         includeMetadata: true,
       },
     });

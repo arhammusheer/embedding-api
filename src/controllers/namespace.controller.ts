@@ -182,7 +182,8 @@ const NamespaceController = {
   query: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const { q } = req.query;
+      const { q, limit } = req.query;
+      const l = limit ? parseInt(limit as string) : 10;
 
       if (!q) {
         return res.status(400).json({
@@ -199,7 +200,7 @@ const NamespaceController = {
         });
       }
 
-      const files = await NamespaceService.searchEmbedding(id, q as string);
+      const files = await NamespaceService.searchEmbedding(id, q as string, l);
       res.status(200).json({
         status: "success",
         data: files,

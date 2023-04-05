@@ -336,7 +336,11 @@ export default class NamespaceService {
     return true;
   }
 
-  public static async searchEmbedding(namespaceId: string, query: string) {
+  public static async searchEmbedding(
+    namespaceId: string,
+    query: string,
+    limit: number
+  ) {
     const embedding = new EmbeddingService();
 
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -350,7 +354,11 @@ export default class NamespaceService {
 
     const searchQuery = Promise.all(
       queryVector.map(async (vector) => {
-        const search = await embedding.searchEmbedding(vector, namespaceId);
+        const search = await embedding.searchEmbedding(
+          vector,
+          namespaceId,
+          limit
+        );
         return search;
       })
     );
