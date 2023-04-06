@@ -6,6 +6,7 @@ import { PORT } from "./config";
 import router from "./routes";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app = express();
 export const prisma = new PrismaClient();
@@ -14,6 +15,7 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(compression());
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({

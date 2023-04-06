@@ -16,7 +16,7 @@ export const userMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers["authorization"] || req.cookies.token; // Get the Authorization header
   const token = authHeader && authHeader.split(" ")[1]; // Get the token from the Authorization header
 
   if (!token) {

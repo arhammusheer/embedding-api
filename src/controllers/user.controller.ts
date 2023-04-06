@@ -14,6 +14,15 @@ const userController = {
       });
     }
 
+    const bearerToken = `Bearer ${user.token}`;
+
+    // Set Cookie
+    res.cookie("token", bearerToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
     res.status(200).json({
       status: "success",
       data: {
@@ -34,10 +43,35 @@ const userController = {
       });
     }
 
+    const bearerToken = `Bearer ${user.token}`;
+
+    // Set Cookie
+    res.cookie("token", bearerToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
     res.status(200).json({
       status: "success",
       data: {
         token: user.token,
+      },
+    });
+  },
+
+  logout: async (req: Request, res: Response) => {
+    res.clearCookie("token");
+    res.status(200).json({
+      status: "success",
+    });
+  },
+
+  isLoggedIn: async (req: Request, res: Response) => {
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: req.user,
       },
     });
   },
