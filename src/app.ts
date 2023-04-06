@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: ["http://localhost:3000", /\.croissant\.one$/],
+    credentials: true,
   })
 );
 
