@@ -1,11 +1,15 @@
 import { Storage, Bucket, File } from "@google-cloud/storage";
+import { GCP_PROJECT_ID, GCS_CREDENTIALS } from "../config";
 
 export default class StorageService {
   private storage: Storage;
   private bucket: Bucket;
 
   constructor(bucketName: string) {
-    this.storage = new Storage();
+    this.storage = new Storage({
+      projectId: GCP_PROJECT_ID,
+      credentials: GCS_CREDENTIALS,
+    });
     this.bucket = this.storage.bucket(bucketName);
   }
 
