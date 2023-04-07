@@ -6,6 +6,8 @@ import EmbeddingService from "./embedding.service";
 import StorageService from "./gcs.service";
 import LoaderService from "./loaders.service";
 
+const embed = new EmbeddingService();
+
 export default class NamespaceService {
   // Get all namespaces
   public static async getNamespaces(userId?: string): Promise<Namespace[]> {
@@ -166,7 +168,6 @@ export default class NamespaceService {
 
     const embeddingIds = embeddings.map((embedding) => embedding.id);
 
-    const embed = new EmbeddingService();
     await embed.deleteEmbeddings(embeddingIds, namespaceId);
 
     // Delete embeddings from database
@@ -267,9 +268,8 @@ export default class NamespaceService {
     const loader = new LoaderService();
     const fileData = await loader.load(fileContent, metadata.contentType);
 
-    const embedding = new EmbeddingService();
-    const embeds = await embedding.generateEmbedding(fileData);
-    const chunks = embedding.getChunks(fileData);
+    const embeds = await embed.generateEmbedding(fileData);
+    const chunks = embed.getChunks(fileData);
 
     const vectors = embeds.map((embed, i) => {
       const v = {
@@ -287,7 +287,7 @@ export default class NamespaceService {
       return vector;
     });
 
-    const upsert = await embedding.upsertEmbedding(
+    const upsert = await embed.upsertEmbedding(
       vectors,
       file.namespaceId,
       fileId
@@ -306,7 +306,6 @@ export default class NamespaceService {
   }
 
   public static async removeEmbeddings(fileId: string) {
-    const embed = new EmbeddingService();
     const file = await prisma.files.findUnique({
       where: { id: fileId },
     });
@@ -343,20 +342,19 @@ export default class NamespaceService {
     query: string,
     limit: number
   ) {
-    const embedding = new EmbeddingService();
 
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     // Check if embedding.setup is true else wait
-    if (!embedding.setup) {
+    if (!embed.setup) {
       await wait(500);
     }
 
-    const queryVector = await embedding.generateEmbedding(query);
+    const queryVector = await embed.generateEmbedding(query);
 
     const searchQuery = Promise.all(
       queryVector.map(async (vector) => {
-        const search = await embedding.searchEmbedding(
+        const search = await embed.searchEmbedding(
           vector,
           namespaceId,
           limit
