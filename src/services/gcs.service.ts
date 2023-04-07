@@ -27,7 +27,11 @@ export default class StorageService {
   // Delete a file from the bucket
   public async deleteFile(filename: string): Promise<void> {
     const file = this.bucket.file(filename);
-    await file.delete();
+    const [exists] = await file.exists();
+
+    if (exists) {
+      await file.delete();
+    }
   }
 
   // Get a file from the bucket
