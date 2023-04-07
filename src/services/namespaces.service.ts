@@ -152,10 +152,12 @@ export default class NamespaceService {
       where: { id: fileId },
     });
 
-    if (file) {
-      const gcp = new StorageService(BUCKET_NAME);
-      await gcp.deleteFile(file.name);
+    if (!file) {
+      return null;
     }
+
+    const gcp = new StorageService(BUCKET_NAME);
+    await gcp.deleteFile(file.name);
 
     // Delete embeddings from pinecone
     const embeddings = await prisma.embedding.findMany({
