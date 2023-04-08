@@ -70,8 +70,6 @@ export default class ChainService {
     });
     const response = await this.openai.chat(messages, model);
 
-    console.log(response)
-
     return response.data.choices[0].message?.content;
   }
 

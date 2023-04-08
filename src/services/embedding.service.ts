@@ -35,8 +35,6 @@ export default class EmbeddingService {
       await this.createIndex("gpt-4-langchain-docs", 1536);
     }
 
-    console.log(indexes);
-
     this.setup = true;
   }
 
@@ -82,7 +80,6 @@ export default class EmbeddingService {
             const response = await this.openAiClient.createEmbedding(chunk);
             return response.data.data[0].embedding;
           } catch (error) {
-            console.log(error);
             return [];
           }
         })

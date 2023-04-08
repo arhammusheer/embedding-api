@@ -130,7 +130,6 @@ const NamespaceController = {
           message: "Namespace does not exist",
         });
       }
-      console.log("fileId", fileId);
 
       const fileExists = await NamespaceService.fileExists(fileId);
       if (!fileExists) {
