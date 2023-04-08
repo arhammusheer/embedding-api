@@ -2,6 +2,13 @@ import { Configuration, OpenAIApi } from "openai";
 
 const EMBEDDING_ENGINE = "text-embedding-ada-002";
 
+export interface OpenAIMessage {
+  content: string;
+  role: "user" | "assistant" | "system";
+}
+
+export type AvailableModels = "gpt-3.5-turbo" | "gpt-4";
+
 export default class OpenAIService {
   API_KEY: string = "";
   client: OpenAIApi;
@@ -35,5 +42,14 @@ export default class OpenAIService {
     }
 
     return chunks;
+  }
+
+  async chat(messages: OpenAIMessage[], model: AvailableModels) {
+    const response = this.client.createChatCompletion({
+      messages,
+      model,
+    });
+
+    return response;
   }
 }

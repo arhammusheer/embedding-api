@@ -33,4 +33,6 @@ namespacesRoutes.delete(
   NamespaceController.removeEmbeddings
 );
 
+namespacesRoutes.get("/:id/chat", NamespaceController.chat);
+
 export default namespacesRoutes;

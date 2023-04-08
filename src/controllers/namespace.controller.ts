@@ -1,5 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import NamespaceService from "../services/namespaces.service";
+import ChainService from "../services/chain.service";
+
+const chain = new ChainService();
 
 const NamespaceController = {
   getNamespaces: async (req: Request, res: Response, next: NextFunction) => {
@@ -235,6 +238,63 @@ const NamespaceController = {
       res.status(200).json({
         status: "success",
         data: file,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  chat: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const namespaceExists = await NamespaceService.namespaceExists(id);
+      if (!namespaceExists) {
+        return res.status(400).json({
+          status: "error",
+          message: "Namespace does not exist",
+        });
+      }
+
+      const messages = req.body.messages;
+
+      if (!messages) {
+        return res.status(400).json({
+          status: "error",
+          message: "Messages are required",
+        });
+      }
+
+      // Check if message is {content: string, role: "user" | "assistant" | "system"}
+      const validMessages = messages.every((message: any) => {
+        return (
+          message.content &&
+          typeof message.content === "string" &&
+          message.role &&
+          ["user", "assistant", "system"].includes(message.role)
+        );
+      });
+
+      if (!validMessages) {
+        return res.status(400).json({
+          status: "error",
+          message:
+            "Messages must be an array of {content: string, role: 'user' | 'assistant' | 'system'}",
+        });
+      }
+
+      // Add system message if first message is not from system
+      if (messages[0].role !== "system") {
+        messages.unshift({
+          content: "You are a helpful assistant.",
+          role: "system",
+        });
+      }
+
+      const response = await chain.chat(messages, "gpt-3.5-turbo", id);
+
+      res.status(200).json({
+        status: "success",
+        data: response,
       });
     } catch (error) {
       next(error);

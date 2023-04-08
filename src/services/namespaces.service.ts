@@ -1,12 +1,14 @@
 import { VectorFromJSON } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch";
 import { Namespace, Prisma } from "@prisma/client";
 import { prisma } from "../app";
-import { BUCKET_NAME } from "../config";
+import { BUCKET_NAME, OPENAI_API_KEY } from "../config";
 import EmbeddingService from "./embedding.service";
 import StorageService from "./gcs.service";
 import LoaderService from "./loaders.service";
+import OpenAIService, { OpenAIMessage } from "./openai.service";
 
 const embed = new EmbeddingService();
+const openAI = new OpenAIService(OPENAI_API_KEY);
 
 export default class NamespaceService {
   // Get all namespaces
@@ -342,7 +344,6 @@ export default class NamespaceService {
     query: string,
     limit: number
   ) {
-
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     // Check if embedding.setup is true else wait
@@ -354,16 +355,19 @@ export default class NamespaceService {
 
     const searchQuery = Promise.all(
       queryVector.map(async (vector) => {
-        const search = await embed.searchEmbedding(
-          vector,
-          namespaceId,
-          limit
-        );
+        const search = await embed.searchEmbedding(vector, namespaceId, limit);
         return search;
       })
     );
 
     const results = await searchQuery;
     return results;
+  }
+
+  public static async chatWithEmbedding(
+    namespaceId: string,
+    messages: OpenAIMessage[],
+  ) {
+    
   }
 }

@@ -147,7 +147,7 @@ export default class EmbeddingService {
       },
     });
 
-    return response;
+    return response
   }
 
   async deleteEmbeddings(vectorIds: string[], namespace: string) {
