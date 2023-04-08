@@ -29,7 +29,7 @@ export default class ChainService {
       messages,
       model
     );
-
+    
     if (!getContextQuery) return null;
     const context = await this.getContext(getContextQuery, namespace);
 
@@ -70,6 +70,8 @@ export default class ChainService {
     });
     const response = await this.openai.chat(messages, model);
 
+    console.log(response)
+
     return response.data.choices[0].message?.content;
   }
 
@@ -78,7 +80,7 @@ export default class ChainService {
     const context = await this.embedding.searchEmbedding(
       queryVector[0],
       namespace,
-      5
+      3
     );
 
     if (!context.matches) return [];

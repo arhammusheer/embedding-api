@@ -290,7 +290,7 @@ const NamespaceController = {
         });
       }
 
-      const response = await chain.chat(messages, "gpt-3.5-turbo", id);
+      const response = await chain.chat(messages, "gpt-4", id);
 
       res.status(200).json({
         status: "success",

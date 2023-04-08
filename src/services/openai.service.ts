@@ -45,7 +45,7 @@ export default class OpenAIService {
   }
 
   async chat(messages: OpenAIMessage[], model: AvailableModels) {
-    const response = this.client.createChatCompletion({
+    const response = await this.client.createChatCompletion({
       messages,
       model,
     });
